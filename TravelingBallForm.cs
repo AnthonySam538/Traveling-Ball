@@ -30,6 +30,8 @@ public class TravelingBallForm : Form
   private const double animationRate = 1000/60;
   private const double refreshRate = 1000/30;
 
+  private short direction = 0; // 0=left | 1=down | 2=right | 3=up
+
   // Create points
   private Point upperRight;
   private Point upperLeft;
@@ -39,12 +41,7 @@ public class TravelingBallForm : Form
 
   // Create Controls
   private Label title = new Label();
-  private Label x = new Label();
-  private Label y = new Label();
-  private Label d = new Label();
-  private TextBox xCoordinateDisplay = new TextBox();
-  private TextBox yCoordinateDisplay = new TextBox();
-  private TextBox direction = new TextBox();
+  private Label ballInfo = new Label();
   private Button startButton = new Button();
   private Button exitButton = new Button();
 
@@ -60,57 +57,35 @@ public class TravelingBallForm : Form
     title.TextAlign = ContentAlignment.MiddleCenter;
     startButton.Text = "Go";
     exitButton.Text = "Exit";
-    x.Text = "X";
-    y.Text = "Y";
-    d.Text = "Direction";
+    ballInfo.Text = "X:\nY:\nDirection:";
+    ballInfo.TextAlign = ContentAlignment.MiddleCenter;
 
     // Set up sizes
     Size = new Size(formWidth, formHeight);
     title.Size = new Size(formWidth, formHeight/10);
-    startButton.Size = new Size(formWidth/3, Height/10);
-    exitButton.Size = startButton.Size;
-    x.AutoSize = true;
-    y.AutoSize = true;
-    d.AutoSize = true;
-    xCoordinateDisplay.Size = new Size(d.Width, d.Height);
-    yCoordinateDisplay.Size = xCoordinateDisplay.Size;
-    direction.Size = xCoordinateDisplay.Size;
+    ballInfo.Size = new Size(formWidth/3, title.Height);
+    startButton.Size = ballInfo.Size;
+    exitButton.Size = ballInfo.Size;
 
     // Set up locations
-    y.Location = new Point(formWidth/6, formHeight*9/10 + y.Height);
-    yCoordinateDisplay.Location = new Point(y.Right, y.Top);
-    xCoordinateDisplay.Location = new Point(y.Left-xCoordinateDisplay.Width, y.Top);
-    x.Location = new Point(xCoordinateDisplay.Left-x.Width, y.Top);
-    d.Location = new Point(x.Right, x.Bottom);
-    direction.Location = new Point(d.Right, x.Bottom);
-    startButton.Location = new Point(formWidth/3, formHeight * 9/10);
-    exitButton.Location = new Point(startButton.Right, startButton.Top);
-    ball = upperRight = new Point(radius*4 + formWidth-8*radius, formHeight/10 + radius*4);
-    upperLeft = new Point(radius*4, upperRight.Y);
-    bottomLeft = new Point(upperLeft.X, upperRight.Y + formHeight*8/10-8*radius);
+    ballInfo.Location = new Point(0, formHeight*9/10);
+    startButton.Location = new Point(ballInfo.Right, ballInfo.Top);
+    exitButton.Location = new Point(startButton.Right, ballInfo.Top);
+    upperRight = ball = new Point(radius*4 + formWidth-8*radius - radius, formHeight/10 + radius*4 - radius);
+    upperLeft = new Point(radius*4 - radius, upperRight.Y);
+    bottomLeft = new Point(upperLeft.X, upperRight.Y + formHeight*8/10 - 8*radius - radius);
     bottomRight = new Point(upperRight.X, bottomLeft.Y);
 
     // Set up colors
+    BackColor = Color.Orange;
     title.BackColor = Color.Cyan;
-    x.BackColor = Color.Transparent;
-    y.BackColor = x.BackColor;
-    d.BackColor = x.BackColor;
+    ballInfo.BackColor = Color.LawnGreen;
     startButton.BackColor = Color.Magenta;
     exitButton.BackColor = startButton.BackColor;
 
-    // Prevent the user from typing into the TextBoxes
-    xCoordinateDisplay.Enabled = false;
-    yCoordinateDisplay.Enabled = false;
-    direction.Enabled = false;
-
     // Add the controls to the form
     Controls.Add(title);
-    Controls.Add(x);
-    Controls.Add(y);
-    Controls.Add(d);
-    Controls.Add(xCoordinateDisplay);
-    Controls.Add(yCoordinateDisplay);
-    Controls.Add(direction);
+    Controls.Add(ballInfo);
     Controls.Add(startButton);
     Controls.Add(exitButton);
 
@@ -125,21 +100,66 @@ public class TravelingBallForm : Form
   {
     Graphics graphics = e.Graphics;
 
-    graphics.FillRectangle(Brushes.LawnGreen, 0, formHeight * 9/10, formWidth, formHeight/10);
-
-    graphics.DrawRectangle(Pens.Black, upperLeft.X, upperLeft.Y, upperRight.X-upperLeft.X, bottomLeft.Y-upperLeft.Y);
-    graphics.FillEllipse(Brushes.DarkOrchid, ball.X-radius, ball.Y-radius, radius*2, radius*2);
+    graphics.DrawRectangle(Pens.Black, upperLeft.X+radius, upperLeft.Y+radius, upperRight.X-upperLeft.X, bottomLeft.Y-upperLeft.Y);
+    graphics.FillEllipse(Brushes.DarkOrchid, ball.X, ball.Y, radius*2, radius*2);
 
     base.OnPaint(e);
   }
 
-  protected void updateBall(Object sender, ElapsedEventArgs evt){}
+  protected void updateBall(Object sender, ElapsedEventArgs evt)
+  {
+    // Check if ball needs to change direction
+    if(direction == 0 && ball.X <= upperLeft.X) //ball has finished going left
+    {
+      ball.X = upperRight.X;
+      direction++;
+    }
+    else if(direction == 1 && ball.Y >= bottomLeft.Y) //ball has finished going down
+    {
+      ball.Y = bottomRight.Y;
+      direction++;
+    }
+    else if(direction == 2 && ball.X >= bottomRight.X) //ball has finished going right
+    {
+      ball.X = bottomRight.X;
+      direction++;
+    }
+    else if(direction == 3 && ball.Y <= upperRight.Y) //ball has finished going up
+    {
+      ball.Y = upperRight.Y;
+      animationClock.Stop();
+      refreshClock.Stop();
+    }
+    // Update ballInfo
+    switch(direction)
+    {
+      case 0:
+        ball.X -= distance;
+        ballInfo.Text = "Left";
+        break;
+      case 1:
+        ball.Y += distance;
+        ballInfo.Text = "Down";
+        break;
+      case 2:
+        ball.X += distance;
+        ballInfo.Text = "Right";
+        break;
+      case 3:
+        ball.Y -= distance;
+        ballInfo.Text = "Up";
+        break;
+    }
+    Invalidate();
+  }
 
   protected void refresh(Object sender, ElapsedEventArgs evt){}
 
   protected void start(Object sender, EventArgs events)
   {
     startButton.Text = "Pause";
+    animationClock.Start();
+    refreshClock.Start();
     // startButton.Text = "Resume";
   }
 
