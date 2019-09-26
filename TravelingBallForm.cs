@@ -26,11 +26,13 @@ public class TravelingBallForm : Form
   private const short formHeight = 900;
   private const short formWidth = formHeight * 16/9;
   private const short radius = 13;
-  private const short distance = 1; //the amount of pixels that the ball travels per tick
-  private const double animationRate = 1000/60;
-  private const double refreshRate = 1000/30;
+  private const short distance = 2; //the amount of pixels that the ball travels per tick
+  private const double animationRate = 1000/60; //60 updates per second
+  private const double refreshRate = 1000/30;   //30 frames per second
 
   private short direction = 0; // 0=left | 1=down | 2=right | 3=up
+
+  private SolidBrush ballBrush = new SolidBrush(Color.DarkOrchid);
 
   // Create points
   private Point upperRight;
@@ -43,6 +45,7 @@ public class TravelingBallForm : Form
   private Label title = new Label();
   private Label ballInfo = new Label();
   private Button startButton = new Button();
+  private Button resetButton = new Button();
   private Button exitButton = new Button();
 
   // Create Timers
@@ -100,8 +103,9 @@ public class TravelingBallForm : Form
   {
     Graphics graphics = e.Graphics;
 
-    graphics.DrawRectangle(Pens.Black, upperLeft.X+radius, upperLeft.Y+radius, upperRight.X-upperLeft.X, bottomLeft.Y-upperLeft.Y);
-    graphics.FillEllipse(Brushes.DarkOrchid, ball.X, ball.Y, radius*2, radius*2);
+    graphics.DrawRectangle(Pens.Black, upperLeft.X+radius, upperLeft.Y+radius, upperRight.X-upperLeft.X, bottomLeft.Y-upperLeft.Y); //draws the path
+
+    graphics.FillEllipse(ballBrush, ball.X, ball.Y, radius*2, radius*2); //draws the ball
 
     base.OnPaint(e);
   }
@@ -111,12 +115,12 @@ public class TravelingBallForm : Form
     // Check if ball needs to change direction
     if(direction == 0 && ball.X <= upperLeft.X) //ball has finished going left
     {
-      ball.X = upperRight.X;
+      ball.X = upperLeft.X;
       direction++;
     }
     else if(direction == 1 && ball.Y >= bottomLeft.Y) //ball has finished going down
     {
-      ball.Y = bottomRight.Y;
+      ball.Y = bottomLeft.Y;
       direction++;
     }
     else if(direction == 2 && ball.X >= bottomRight.X) //ball has finished going right
@@ -127,40 +131,52 @@ public class TravelingBallForm : Form
     else if(direction == 3 && ball.Y <= upperRight.Y) //ball has finished going up
     {
       ball.Y = upperRight.Y;
+      ballBrush.Color = Color.Gold;
       animationClock.Stop();
       refreshClock.Stop();
+      Invalidate();
     }
-    // Update ballInfo
+    // Update ball.Location and ballInfo
     switch(direction)
     {
-      case 0:
+      case 0: //left
         ball.X -= distance;
-        ballInfo.Text = "Left";
+        ballInfo.Text = "X: " + ball.X + "\nY: " + ball.Y + "\nLeft";
         break;
-      case 1:
+      case 1: //down
         ball.Y += distance;
-        ballInfo.Text = "Down";
+        ballInfo.Text = "X: " + ball.X + "\nY: " + ball.Y + "\nDown";
         break;
-      case 2:
+      case 2: //right
         ball.X += distance;
-        ballInfo.Text = "Right";
+        ballInfo.Text = "X: " + ball.X + "\nY: " + ball.Y + "\nRight";
         break;
-      case 3:
+      case 3: //up
         ball.Y -= distance;
-        ballInfo.Text = "Up";
+        ballInfo.Text = "X: " + ball.X + "\nY: " + ball.Y + "\nUp";
         break;
     }
+  }
+
+  protected void refresh(Object sender, ElapsedEventArgs evt)
+  {
     Invalidate();
   }
 
-  protected void refresh(Object sender, ElapsedEventArgs evt){}
-
   protected void start(Object sender, EventArgs events)
   {
-    startButton.Text = "Pause";
-    animationClock.Start();
-    refreshClock.Start();
-    // startButton.Text = "Resume";
+    if(startButton.Text == "Pause")
+    {
+      animationClock.Stop();
+      refreshClock.Stop();
+      startButton.Text = "Resume";
+    }
+    else
+    {
+      animationClock.Start();
+      refreshClock.Start();
+      startButton.Text = "Pause";
+    }
   }
 
   protected void exit(Object sender, EventArgs events)
