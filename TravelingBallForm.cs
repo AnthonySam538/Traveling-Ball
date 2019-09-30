@@ -27,8 +27,8 @@ public class TravelingBallForm : Form
   private const short formWidth = formHeight * 16/9;
   private const short radius = 13;
   private const short distance = 2; //the amount of pixels that the ball travels per tick
-  private const double animationRate = 1000/60; //60 updates per second
-  private const double refreshRate = 1000/30;   //30 frames per second
+  private const double animationRate = 1000/60; //60 updates per second (should be at least 60)
+  private const double refreshRate = 1000/60;   //60 frames per second (should be at least 60)
 
   private short direction = 0; // 0=left | 1=down | 2=right | 3=up
 
@@ -59,6 +59,7 @@ public class TravelingBallForm : Form
     title.Text = "Traveling Ball by Anthony Sam";
     title.TextAlign = ContentAlignment.MiddleCenter;
     startButton.Text = "Go";
+    resetButton.Text = "Reset";
     exitButton.Text = "Exit";
     ballInfo.Text = "X:\nY:\nDirection:";
     ballInfo.TextAlign = ContentAlignment.MiddleCenter;
@@ -66,14 +67,13 @@ public class TravelingBallForm : Form
     // Set up sizes
     Size = new Size(formWidth, formHeight);
     title.Size = new Size(formWidth, formHeight/10);
-    ballInfo.Size = new Size(formWidth/3, title.Height);
-    startButton.Size = ballInfo.Size;
-    exitButton.Size = ballInfo.Size;
+    ballInfo.Size = new Size(formWidth/4, title.Height);
 
     // Set up locations
     ballInfo.Location = new Point(0, formHeight*9/10);
-    startButton.Location = new Point(ballInfo.Right, ballInfo.Top);
-    exitButton.Location = new Point(startButton.Right, ballInfo.Top);
+    startButton.Location = new Point(formWidth/4, formHeight*19/20-startButton.Height/2);
+    resetButton.Location = new Point(formWidth/2, startButton.Top);
+    exitButton.Location = new Point(formWidth*3/4, startButton.Top);
     upperRight = ball = new Point(radius*4 + formWidth-8*radius - radius, formHeight/10 + radius*4 - radius);
     upperLeft = new Point(radius*4 - radius, upperRight.Y);
     bottomLeft = new Point(upperLeft.X, upperRight.Y + formHeight*8/10 - 8*radius - radius);
@@ -82,26 +82,31 @@ public class TravelingBallForm : Form
     // Set up colors
     BackColor = Color.Orange;
     title.BackColor = Color.Cyan;
-    ballInfo.BackColor = Color.LawnGreen;
+    ballInfo.BackColor = Color.Transparent;
     startButton.BackColor = Color.Magenta;
+    resetButton.BackColor = startButton.BackColor;
     exitButton.BackColor = startButton.BackColor;
 
     // Add the controls to the form
     Controls.Add(title);
     Controls.Add(ballInfo);
     Controls.Add(startButton);
+    Controls.Add(resetButton);
     Controls.Add(exitButton);
 
     // Tell the events which method to call (Each method is defined below)
     animationClock.Elapsed += new ElapsedEventHandler(updateBall);
     refreshClock.Elapsed += new ElapsedEventHandler(refresh);
     startButton.Click += new EventHandler(start);
+    resetButton.Click += new EventHandler(reset);
     exitButton.Click += new EventHandler(exit);
   }
 
   protected override void OnPaint(PaintEventArgs e)
   {
     Graphics graphics = e.Graphics;
+
+    graphics.FillRectangle(Brushes.LawnGreen, ballInfo.Left, ballInfo.Top, title.Width, title.Height); //draws a green bar at the bottom
 
     graphics.DrawRectangle(Pens.Black, upperLeft.X+radius, upperLeft.Y+radius, upperRight.X-upperLeft.X, bottomLeft.Y-upperLeft.Y); //draws the path
 
@@ -136,30 +141,42 @@ public class TravelingBallForm : Form
       refreshClock.Stop();
       Invalidate();
     }
-    // Update ball.Location and ballInfo
+    // Update ball
     switch(direction)
     {
-      case 0: //left
+      case 0: //ball is going left
         ball.X -= distance;
-        ballInfo.Text = "X: " + ball.X + "\nY: " + ball.Y + "\nLeft";
         break;
-      case 1: //down
+      case 1: //ball is going down
         ball.Y += distance;
-        ballInfo.Text = "X: " + ball.X + "\nY: " + ball.Y + "\nDown";
         break;
-      case 2: //right
+      case 2: //ball is going right
         ball.X += distance;
-        ballInfo.Text = "X: " + ball.X + "\nY: " + ball.Y + "\nRight";
         break;
-      case 3: //up
+      case 3: //ball is going up
         ball.Y -= distance;
-        ballInfo.Text = "X: " + ball.X + "\nY: " + ball.Y + "\nUp";
         break;
     }
   }
 
   protected void refresh(Object sender, ElapsedEventArgs evt)
   {
+    ballInfo.Text = "X: " + ball.X + "\nY: " + ball.Y;
+    switch(direction)
+    {
+      case 0:
+      ballInfo.Text += "\nLeft";
+      break;
+      case 1:
+      ballInfo.Text += "\nDown";
+      break;
+      case 2:
+      ballInfo.Text += "\nRight";
+      break;
+      case 3:
+      ballInfo.Text += "\nUp";
+      break;
+    }
     Invalidate();
   }
 
@@ -177,6 +194,18 @@ public class TravelingBallForm : Form
       refreshClock.Start();
       startButton.Text = "Pause";
     }
+  }
+
+  protected void reset(Object sender, EventArgs events)
+  {
+    animationClock.Stop();
+    refreshClock.Stop();
+    ball = upperRight;
+    direction = 0;
+    ballBrush.Color = Color.DarkOrchid;
+    ballInfo.Text = "X:\nY:\nDirection:";
+    startButton.Text = "Go";
+    Invalidate();
   }
 
   protected void exit(Object sender, EventArgs events)
