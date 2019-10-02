@@ -32,7 +32,7 @@ public class TravelingBallForm : Form
 
   private short direction = 0; // 0=left | 1=down | 2=right | 3=up
 
-  private SolidBrush ballBrush = new SolidBrush(Color.DarkOrchid);
+  private SolidBrush ballBrush = new SolidBrush(Color.Magenta);
 
   // Create points
   private Point upperRight;
@@ -83,7 +83,7 @@ public class TravelingBallForm : Form
     BackColor = Color.Orange;
     title.BackColor = Color.Cyan;
     ballInfo.BackColor = Color.Transparent;
-    startButton.BackColor = Color.Magenta;
+    startButton.BackColor = Color.DarkOrchid;
     resetButton.BackColor = startButton.BackColor;
     exitButton.BackColor = startButton.BackColor;
 
@@ -120,7 +120,7 @@ public class TravelingBallForm : Form
     // Check if ball needs to change direction
     if(direction == 0 && ball.X <= upperLeft.X) //ball has finished going left
     {
-      ball.X = upperLeft.X;
+      ball.X = upperLeft.X; //make sure it's on the path
       direction++;
     }
     else if(direction == 1 && ball.Y >= bottomLeft.Y) //ball has finished going down
@@ -135,6 +135,7 @@ public class TravelingBallForm : Form
     }
     else if(direction == 3 && ball.Y <= upperRight.Y) //ball has finished going up
     {
+      direction++; //increment to 4 so that refresh() can't move the ball
       ball.Y = upperRight.Y;
       ballBrush.Color = Color.Gold;
       animationClock.Stop();
@@ -161,21 +162,21 @@ public class TravelingBallForm : Form
 
   protected void refresh(Object sender, ElapsedEventArgs evt)
   {
-    ballInfo.Text = "X: " + ball.X + "\nY: " + ball.Y;
+    ballInfo.Text = "X: " + ball.X + "\nY: " + ball.Y + "\nDirection: ";
     switch(direction)
     {
       case 0:
-      ballInfo.Text += "\nLeft";
-      break;
+        ballInfo.Text += "Left";
+        break;
       case 1:
-      ballInfo.Text += "\nDown";
-      break;
+        ballInfo.Text += "Down";
+        break;
       case 2:
-      ballInfo.Text += "\nRight";
-      break;
+        ballInfo.Text += "Right";
+        break;
       case 3:
-      ballInfo.Text += "\nUp";
-      break;
+        ballInfo.Text += "Up";
+        break;
     }
     Invalidate();
   }
@@ -202,7 +203,7 @@ public class TravelingBallForm : Form
     refreshClock.Stop();
     ball = upperRight;
     direction = 0;
-    ballBrush.Color = Color.DarkOrchid;
+    ballBrush.Color = Color.Magenta;
     ballInfo.Text = "X:\nY:\nDirection:";
     startButton.Text = "Go";
     Invalidate();
