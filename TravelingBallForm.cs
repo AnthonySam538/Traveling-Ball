@@ -26,7 +26,7 @@ public class TravelingBallForm : Form
   private const short formHeight = 900;
   private const short formWidth = formHeight * 16/9;
   private const short radius = 13;
-  private const short distance = 2; //the amount of pixels that the ball travels per tick
+  private const short distance = 7; //the amount of pixels that the ball travels per tick
   private const double animationRate = 1000/60; //60 updates per second (should be at least 60)
   private const double refreshRate = 1000/60;   //60 frames per second (should be at least 60)
 
@@ -54,16 +54,6 @@ public class TravelingBallForm : Form
 
   public TravelingBallForm() //The constructor of this class
   {
-    // Set up the texts
-    Text = "Traveling Ball";
-    title.Text = "Traveling Ball by Anthony Sam";
-    title.TextAlign = ContentAlignment.MiddleCenter;
-    startButton.Text = "Go";
-    resetButton.Text = "Reset";
-    exitButton.Text = "Exit";
-    ballInfo.Text = "X:\nY:\nDirection:";
-    ballInfo.TextAlign = ContentAlignment.MiddleCenter;
-
     // Set up sizes
     Size = new Size(formWidth, formHeight);
     title.Size = new Size(formWidth, formHeight/10);
@@ -78,6 +68,16 @@ public class TravelingBallForm : Form
     upperLeft = new Point(radius*4 - radius, upperRight.Y);
     bottomLeft = new Point(upperLeft.X, upperRight.Y + formHeight*8/10 - 8*radius - radius);
     bottomRight = new Point(upperRight.X, bottomLeft.Y);
+
+    // Set up the texts
+    Text = "Traveling Ball";
+    title.Text = "Traveling Ball by Anthony Sam";
+    title.TextAlign = ContentAlignment.MiddleCenter;
+    startButton.Text = "Go";
+    resetButton.Text = "Reset";
+    exitButton.Text = "Exit";
+    ballInfo.Text = "X: " + ball.X + "\nY: " + ball.Y + "\nDirection:";
+    ballInfo.TextAlign = ContentAlignment.MiddleCenter;
 
     // Set up colors
     BackColor = Color.Orange;
@@ -140,6 +140,7 @@ public class TravelingBallForm : Form
       ballBrush.Color = Color.Gold;
       animationClock.Stop();
       refreshClock.Stop();
+      ballInfo.Text = "X: " + ball.X + "\nY: " + ball.Y + "\nDirection:";
       Invalidate();
     }
     // Update ball
@@ -204,7 +205,7 @@ public class TravelingBallForm : Form
     ball = upperRight;
     direction = 0;
     ballBrush.Color = Color.Magenta;
-    ballInfo.Text = "X:\nY:\nDirection:";
+    ballInfo.Text = "X: " + ball.X + "\nY: " + ball.Y + "\nDirection:";
     startButton.Text = "Go";
     Invalidate();
   }
